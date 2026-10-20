@@ -3,7 +3,7 @@
 # parallel Claude Code agents typically do. Usage: ./make-demo-repo.sh [target-dir]
 set -euo pipefail
 
-TARGET="${1:-$PWD/clash-map-demo}"
+TARGET="${1:-$PWD/lanekeeper-demo}"
 if [ -e "$TARGET" ]; then
   echo "Target already exists: $TARGET" >&2
   exit 1
@@ -13,7 +13,7 @@ mkdir -p "$TARGET/shop"
 cd "$TARGET/shop"
 git init -q -b main
 git config user.email "demo@example.com"
-git config user.name "Clash Map demo"
+git config user.name "Lanekeeper demo"
 
 mkdir -p src/payments src/checkout src/product
 cat > src/payments/PaymentService.ts <<'EOF'

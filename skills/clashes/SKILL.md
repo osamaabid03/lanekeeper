@@ -3,9 +3,9 @@ name: clashes
 description: Show which parallel Claude Code agents, each working in its own git worktree, are touching the same files or functions, and flag clashes before their branches are merged. Use when the user runs /clashes, asks whether parallel agents or worktrees conflict, asks what other agents are doing, or is about to merge agent branches.
 ---
 
-# Clash Map
+# Lanekeeper
 
-Clash Map compares every git worktree of this repository against the base branch and finds clashes between agents:
+Lanekeeper compares every git worktree of this repository against the base branch and finds clashes between agents:
 a definition one agent removed that another is building on, both agents changing the same function, both changing
 a lockfile, or both changing the same file.
 

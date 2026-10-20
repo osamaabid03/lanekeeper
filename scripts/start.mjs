@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Starts the Clash Map page for the repository in the current directory (or reuses a running one)
+// Starts the Lanekeeper page for the repository in the current directory (or reuses a running one)
 // and prints its address. Usage: node start.mjs [--repo DIR] [--open] [--stop]
 import fs from 'node:fs';
 import path from 'node:path';
@@ -13,7 +13,7 @@ const repo = path.resolve(i > -1 ? process.argv[i + 1] : process.cwd());
 
 const info = repoInfo(repo);
 if (!info) {
-  console.error('clash-map: run this inside a git repository (any of its worktrees).');
+  console.error('lanekeeper: run this inside a git repository (any of its worktrees).');
   process.exit(2);
 }
 const serverFile = path.join(storeDir(info.commonDir), 'server.json');
@@ -53,9 +53,9 @@ async function main() {
   if (process.argv.includes('--stop')) {
     if (s && (await healthy(s))) {
       process.kill(s.pid, 'SIGTERM');
-      console.log('Clash Map stopped.');
+      console.log('Lanekeeper stopped.');
     } else {
-      console.log('Clash Map is not running.');
+      console.log('Lanekeeper is not running.');
     }
     return;
   }
@@ -74,13 +74,13 @@ async function main() {
       if (candidate && candidate.pid === child.pid && (await healthy(candidate))) s = candidate;
     }
     if (!s) {
-      console.error('clash-map: the server did not start. Try: node server/server.mjs <repo> to see the error.');
+      console.error('lanekeeper: the server did not start. Try: node server/server.mjs <repo> to see the error.');
       process.exit(2);
     }
   }
 
   const url = `http://127.0.0.1:${s.port}`;
-  console.log(`Clash Map is running at ${url}`);
+  console.log(`Lanekeeper is running at ${url}`);
   if (process.argv.includes('--open')) openBrowser(url);
 }
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Clash Map</title>
+<title>Lanekeeper</title>
 <style>
   :root {
     --bg: #F7F7F5; --panel: #FFFFFF; --line: #E2E2DE; --line-strong: #C9C9C4;
@@ -89,7 +89,7 @@
 <header>
   <div class="brand">
     <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true"><rect x="2" y="2" width="14" height="14" rx="3" stroke="currentColor" stroke-width="2"/><rect x="10" y="10" width="14" height="14" rx="3" stroke="var(--clash)" stroke-width="2"/></svg>
-    <b>Clash Map</b>
+    <b>Lanekeeper</b>
     <span class="muted" aria-hidden="true">/</span>
     <span class="mono" id="repo">…</span>
     <span class="muted" style="font-size:12.5px">base: <span class="mono" id="base">…</span></span>
@@ -134,7 +134,7 @@
   let fetchedAt = 0;
 
   const store = {
-    key: () => 'clashmap:fine:' + (state?.id || state?.root || ''),
+    key: () => 'lanekeeper:fine:' + (state?.id || state?.root || ''),
     get() { try { return new Set(JSON.parse(localStorage.getItem(this.key()) || '[]')); } catch { return new Set(); } },
     set(s) { try { localStorage.setItem(this.key(), JSON.stringify([...s])); } catch {} },
   };
@@ -163,7 +163,7 @@
     const n = visibleClashes().length;
     $('clashPill').lastElementChild.textContent = n ? `${n} clash${n === 1 ? '' : 'es'}` : 'No clashes';
     $('clashPill').className = n ? 'pill orange' : 'pill idle';
-    document.title = n ? `(${n}) Clash Map` : 'Clash Map';
+    document.title = n ? `(${n}) Lanekeeper` : 'Lanekeeper';
   }
 
   function renderLanes() {
@@ -252,7 +252,7 @@
   function render() {
     if (!state) return;
     if (state.error) {
-      $('lanes').innerHTML = `<div class="card error">Clash Map could not read this repository: ${esc(state.error)}</div>`;
+      $('lanes').innerHTML = `<div class="card error">Lanekeeper could not read this repository: ${esc(state.error)}</div>`;
       return;
     }
     renderHeader();
@@ -264,7 +264,7 @@
 
   function noteFor(c) {
     const lines = [
-      `Clash Map found a clash with another agent working in parallel on this repository (${c.tag}, ${SEV[c.severity]}).`,
+      `Lanekeeper found a clash with another agent working in parallel on this repository (${c.tag}, ${SEV[c.severity]}).`,
       '',
       c.explain,
       '',

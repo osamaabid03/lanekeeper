@@ -1,12 +1,13 @@
-# Clash Map
+# Lanekeeper
 
-**See which parallel Claude Code agents are touching what, and catch clashes before you merge.**
+**Keeps your parallel Claude Code agents in their lanes.** A live map of what each agent is touching, with clashes
+caught before you merge.
 
 Running several agents at once, each in its own git worktree, stops them overwriting each other's files. It doesn't
 stop them making changes that can't both be true. Git compares text, not intent, so contradictory work merges cleanly
 and breaks later.
 
-Clash Map watches every worktree of a repository and shows a live map:
+Lanekeeper watches every worktree of a repository and shows a live map:
 
 - one lane per agent, with its task and every file it has changed
 - clashes highlighted, each explained in plain English with a suggested fix
@@ -31,14 +32,14 @@ and same-file checks work for any language.
 From GitHub (once this repository is published):
 
 ```
-/plugin marketplace add <your-github-user>/clash-map
-/plugin install clash-map@clash-map
+/plugin marketplace add <your-github-user>/lanekeeper
+/plugin install lanekeeper@lanekeeper
 ```
 
 From a local folder while developing:
 
 ```
-claude --plugin-dir ./clash-map
+claude --plugin-dir ./lanekeeper
 ```
 
 Requires Node.js 18+ and git.
@@ -46,7 +47,7 @@ Requires Node.js 18+ and git.
 ## Use
 
 1. Start agents in their own worktrees, for example `claude --worktree stripe` and `claude --worktree paypal`.
-2. In any of them (or your main checkout), run `/clash-map:clashes`. Claude starts the map and gives you the link,
+2. In any of them (or your main checkout), run `/lanekeeper:clashes`. Claude starts the map and gives you the link,
    usually `http://127.0.0.1:4777`, and summarizes any clashes.
 3. Pick a clash to read what happened. **Copy note for agents** copies a message you can paste into each agent's
    session; **Mark as fine** hides it.
@@ -61,13 +62,13 @@ node scripts/start.mjs --stop   # stop the map
 ```
 
 Options: `--base <branch>` (defaults to origin's default branch, then main, master, trunk, develop),
-`CLASH_MAP_PORT` (default 4777).
+`LANEKEEPER_PORT` (default 4777).
 
 ## Try the demo
 
 ```
 ./examples/make-demo-repo.sh /tmp/clash-demo
-cd /tmp/clash-demo/shop && node /path/to/clash-map/scripts/check.mjs
+cd /tmp/clash-demo/shop && node /path/to/lanekeeper/scripts/check.mjs
 ```
 
 It creates a repository with three agent worktrees: one replacing `PaymentService`, one extending it, and one working
@@ -77,7 +78,7 @@ on an unrelated page.
 
 - **Hooks** (`hooks/hooks.json`) run in the background on session start, each prompt, each file edit and each stop.
   They record which worktree an agent works in, its task and the files it edits. They never block Claude.
-- **Store**: events are appended to `.git/clash-map/events.jsonl` in the shared git directory, so every worktree sees
+- **Store**: events are appended to `.git/lanekeeper/events.jsonl` in the shared git directory, so every worktree sees
   them.
 - **Detector** (`lib/detect.mjs`) diffs each worktree, including uncommitted work, against the point where it branched
   from the base branch, then compares the agents pairwise.

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Local-only web server for the Clash Map page. Usage: node server.mjs <repo-dir>
+// Local-only web server for the Lanekeeper page. Usage: node server.mjs <repo-dir>
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,7 +14,7 @@ const IDLE_EXIT_MS = 2 * 60 * 60 * 1000; // stop after two hours without visitor
 
 const info = repoInfo(path.resolve(process.argv[2] || process.cwd()));
 if (!info) {
-  console.error('clash-map: not inside a git repository');
+  console.error('lanekeeper: not inside a git repository');
   process.exit(2);
 }
 const serverFile = path.join(storeDir(info.commonDir), 'server.json');
@@ -25,7 +25,7 @@ function state() {
   if (cache.body && now - cache.at < 1500) return cache.body;
   let body;
   try {
-    body = JSON.stringify(detect(info.top, { base: process.env.CLASH_MAP_BASE }));
+    body = JSON.stringify(detect(info.top, { base: process.env.LANEKEEPER_BASE }));
   } catch (err) {
     body = JSON.stringify({ error: err.message });
   }
@@ -64,18 +64,18 @@ function cleanup() {
   } catch {}
 }
 
-const firstPort = Number(process.env.CLASH_MAP_PORT) || 4777;
+const firstPort = Number(process.env.LANEKEEPER_PORT) || 4777;
 function listen(port) {
   server.once('error', (err) => {
     if (err.code === 'EADDRINUSE' && port < firstPort + 20) listen(port + 1);
     else {
-      console.error(`clash-map: ${err.message}`);
+      console.error(`lanekeeper: ${err.message}`);
       process.exit(2);
     }
   });
   server.listen(port, '127.0.0.1', () => {
     fs.writeFileSync(serverFile, JSON.stringify({ port, pid: process.pid, root: info.top, startedAt: Date.now() }));
-    console.log(`Clash Map running at http://127.0.0.1:${port}`);
+    console.log(`Lanekeeper running at http://127.0.0.1:${port}`);
   });
 }
 listen(firstPort);

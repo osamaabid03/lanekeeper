@@ -15,7 +15,7 @@ try {
     process.stdout.write(JSON.stringify(state, null, 2) + '\n');
   } else {
     const lines = [];
-    lines.push(`Clash Map: ${state.repo} (base: ${state.base})`);
+    lines.push(`Lanekeeper: ${state.repo} (base: ${state.base})`);
     lines.push('');
     if (!state.agents.length) lines.push('No agent worktrees with changes found.');
     for (const a of state.agents) {
@@ -45,6 +45,6 @@ try {
   }
   process.exit(state.clashes.some((c) => c.severity !== 'low') ? 1 : 0);
 } catch (err) {
-  process.stderr.write(`clash-map: ${err.message}\n`);
+  process.stderr.write(`lanekeeper: ${err.message}\n`);
   process.exit(2);
 }

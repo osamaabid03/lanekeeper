@@ -1,8 +1,8 @@
 {
-  "name": "clash-map",
-  "displayName": "Clash Map",
+  "name": "lanekeeper",
+  "displayName": "Lanekeeper",
   "version": "0.1.0",
-  "description": "See which parallel Claude Code agents are touching what, and catch clashes between their worktrees before you merge.",
+  "description": "Keeps parallel Claude Code agents in their lanes: a live map of what each agent is touching, with clashes caught before you merge.",
   "author": {
     "name": "Usama Abid"
   },

@@ -1,14 +1,14 @@
 {
-  "name": "clash-map",
-  "description": "Clash Map: a live map of what parallel Claude Code agents are touching, with clash detection before merge.",
+  "name": "lanekeeper",
+  "description": "Lanekeeper keeps parallel Claude Code agents in their lanes: a live map of what each agent is touching, with clashes caught before you merge.",
   "owner": {
     "name": "Usama Abid"
   },
   "plugins": [
     {
-      "name": "clash-map",
+      "name": "lanekeeper",
       "source": "./",
-      "description": "See which parallel Claude Code agents are touching what, and catch clashes between their worktrees before you merge."
+      "description": "Keeps parallel Claude Code agents in their lanes: a live map of what each agent is touching, with clashes caught before you merge."
     }
   ]
 }
