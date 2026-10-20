@@ -72,12 +72,15 @@ test('detect() on the demo repo: quiet at the start, clashes appear as agents wo
     assert.deepEqual(s.agents.map((a) => a.branch), ['agent/stripe']);
     assert.equal(s.clashes.length, 0);
 
-    // The paypal agent extends PaymentService and adds a package; the product-page agent works elsewhere.
+    // The paypal agent calls the method stripe renamed, from a new file, and adds a package.
     const paypal = path.join(dir, 'demo', 'shop-paypal');
-    const svc = path.join(paypal, 'src/payments/PaymentService.ts');
-    fs.writeFileSync(svc, fs.readFileSync(svc, 'utf8').replace('  charge(', '  refund(amount: number) {\n    return { ok: true, amount: -amount };\n  }\n\n  charge('));
+    fs.mkdirSync(path.join(paypal, 'src/payments/paypal'), { recursive: true });
+    fs.writeFileSync(
+      path.join(paypal, 'src/payments/paypal/client.ts'),
+      "import { PaymentService } from '../PaymentService';\n\nexport function enablePayPal(service: PaymentService) {\n  return service.charge(1);\n}\n",
+    );
     const lock = path.join(paypal, 'package-lock.json');
-    fs.writeFileSync(lock, fs.readFileSync(lock, 'utf8').replace('"node_modules/react": { "version": "18.3.1" }', '"node_modules/react": { "version": "18.3.1" },\n    "node_modules/@paypal/sdk": { "version": "1.4.0" }'));
+    fs.writeFileSync(lock, fs.readFileSync(lock, 'utf8').replace('"": { "name": "shop" },', '"": { "name": "shop" },\n    "node_modules/@paypal/sdk": { "version": "1.4.0" },'));
     fs.appendFileSync(path.join(dir, 'demo', 'shop-product-page', 'src/product/ProductPage.tsx'), '// description\n');
 
     s = detect(shop);
@@ -86,16 +89,22 @@ test('detect() on the demo repo: quiet at the start, clashes appear as agents wo
     const high = s.clashes.filter((c) => c.severity === 'high');
     assert.equal(high.length, 1);
     assert.equal(high[0].kind, 'removed-used');
-    assert.equal(high[0].symbol, 'PaymentService');
+    assert.equal(high[0].symbol, 'charge');
+    assert.match(high[0].explain, /\(agent\/stripe\).*\(agent\/paypal\)/);
 
     const lockClashes = s.clashes.filter((c) => c.kind === 'lockfile');
     assert.equal(lockClashes.length, 1);
     assert.equal(lockClashes[0].severity, 'medium');
 
     assert.equal(s.clashes.length, 2);
-    // Clash-free product page goes first; the agent that removed PaymentService goes last.
+    // Clash-free product page goes first; the agent that renamed charge goes last.
     assert.equal(s.mergeOrder[0].branch, 'agent/product-page');
     assert.equal(s.mergeOrder.at(-1).branch, 'agent/stripe');
+
+    // The point of the demo: Git itself sees nothing wrong with merging these two branches.
+    execFileSync('git', ['-C', paypal, 'add', '-A']);
+    execFileSync('git', ['-C', paypal, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'paypal']);
+    execFileSync('git', ['-C', shop, 'merge-tree', '--write-tree', 'agent/stripe', 'agent/paypal'], { stdio: 'ignore' });
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

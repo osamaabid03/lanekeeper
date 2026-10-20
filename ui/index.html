@@ -264,7 +264,7 @@
 
   function noteFor(c) {
     const lines = [
-      `Lanekeeper found a clash with another agent working in parallel on this repository (${c.tag}, ${SEV[c.severity]}).`,
+      `Lanekeeper may have found a clash between agents working in parallel on this repository (${c.tag}, ${SEV[c.severity]}). It is a lead, not a verdict, so check it before acting. You are working on one of the branches named below.`,
       '',
       c.explain,
       '',
