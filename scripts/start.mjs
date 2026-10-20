@@ -64,7 +64,6 @@ async function main() {
     const child = spawn(process.execPath, [path.join(here, '..', 'server', 'server.mjs'), info.top], {
       detached: true,
       stdio: 'ignore',
-      env: process.env,
     });
     child.unref();
     s = null;
