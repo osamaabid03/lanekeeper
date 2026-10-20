@@ -71,13 +71,30 @@ Options: `--base <branch>` (defaults to origin's default branch, then main, mast
 
 ## Try the demo
 
+Build a small repository where one agent has already renamed a method, then let a second agent call it:
+
 ```
-./examples/make-demo-repo.sh /tmp/clash-demo
-cd /tmp/clash-demo/shop && node /path/to/lanekeeper/scripts/check.mjs
+./examples/make-demo-repo.sh ~/lanekeeper-demo
+cd ~/lanekeeper-demo/shop && node /path/to/lanekeeper/scripts/start.mjs --open
 ```
 
-It creates a repository with three agent worktrees: one replacing `PaymentService`, one extending it, and one working
-on an unrelated page.
+The map opens showing one agent and no clashes. In two more terminals, start agents in the other worktrees:
+
+```
+cd ~/lanekeeper-demo/shop-paypal && claude --plugin-dir /path/to/lanekeeper
+cd ~/lanekeeper-demo/shop-product-page && claude --plugin-dir /path/to/lanekeeper
+```
+
+Give the first agent: *"Create src/payments/paypal/client.ts with a function enablePayPal(service: PaymentService)
+that calls service.charge(). Don't change any other file."* and the second: *"Add a short description paragraph
+under the heading in src/product/ProductPage.tsx."* A High clash appears on the map while the first agent works: stripe
+renamed `charge`, paypal calls it, and Git merges the two without complaint.
+
+## Development
+
+```
+node --test        # runs the tests; no dependencies to install
+```
 
 ## How it works
 
