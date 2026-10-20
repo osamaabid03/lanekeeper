@@ -8,6 +8,10 @@
   },
   "homepage": "https://github.com/osamaabid03/lanekeeper",
   "repository": "https://github.com/osamaabid03/lanekeeper",
+  "documentationUrl": "https://github.com/osamaabid03/lanekeeper#readme",
+  "privacyPolicyUrl": "https://github.com/osamaabid03/lanekeeper#data-and-privacy",
+  "supportUrl": "https://github.com/osamaabid03/lanekeeper/issues",
+  "termsOfServiceUrl": "https://github.com/osamaabid03/lanekeeper/blob/main/LICENSE",
   "license": "MIT",
   "keywords": [
     "parallel-agents",
