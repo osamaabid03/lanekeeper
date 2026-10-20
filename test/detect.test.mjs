@@ -69,7 +69,7 @@ test('detect() on the demo repo: quiet at the start, clashes appear as agents wo
     // Only the stripe agent has changed anything, so there is nothing to clash with yet.
     let s = detect(shop);
     assert.equal(s.base, 'main');
-    assert.deepEqual(s.agents.map((a) => a.branch), ['agent/stripe']);
+    assert.deepEqual(s.agents.map((a) => [a.letter, a.branch]), [['A', 'agent/stripe']]);
     assert.equal(s.clashes.length, 0);
 
     // The paypal agent calls the method stripe renamed, from a new file, and adds a package.
@@ -84,7 +84,8 @@ test('detect() on the demo repo: quiet at the start, clashes appear as agents wo
     fs.appendFileSync(path.join(dir, 'demo', 'shop-product-page', 'src/product/ProductPage.tsx'), '// description\n');
 
     s = detect(shop);
-    assert.equal(s.agents.length, 3);
+    // Stripe keeps its letter when the others appear.
+    assert.deepEqual(s.agents.map((a) => [a.letter, a.branch]), [['A', 'agent/stripe'], ['B', 'agent/paypal'], ['C', 'agent/product-page']]);
 
     const high = s.clashes.filter((c) => c.severity === 'high');
     assert.equal(high.length, 1);

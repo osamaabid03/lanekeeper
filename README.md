@@ -86,7 +86,7 @@ cd ~/lanekeeper-demo/shop-product-page && claude --plugin-dir /path/to/lanekeepe
 ```
 
 Give the first agent: *"Create src/payments/paypal/client.ts with a function enablePayPal(service: PaymentService)
-that calls service.charge(). Don't change any other file."* and the second: *"Add a short description paragraph
+that calls service.charge(). Don't change any other file. Then commit it."* and the second: *"Add a short description paragraph
 under the heading in src/product/ProductPage.tsx."* A High clash appears on the map while the first agent works: stripe
 renamed `charge`, paypal calls it, and Git merges the two without complaint.
 

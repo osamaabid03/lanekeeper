@@ -9,7 +9,7 @@ after, and the map reacts within 1–2 s of each event.
   clashes.
 - Split screen: two terminals stacked on the left, the map on the right. Large font, no personal paths visible.
 - Pre-type both prompts so you only press Enter:
-  - paypal: `Create src/payments/paypal/client.ts with a function enablePayPal(service: PaymentService) that calls service.charge(). Don't change any other file.`
+  - paypal: `Create src/payments/paypal/client.ts with a function enablePayPal(service: PaymentService) that calls service.charge(). Don't change any other file. Then commit it.` (Approve the git commit when Claude asks; it makes the clash say Git won't warn you.)
   - product-page: `Add a short description paragraph under the heading in src/product/ProductPage.tsx`
 
 ## The 60 seconds

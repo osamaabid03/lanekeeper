@@ -82,7 +82,7 @@ Demo repository ready: $TARGET/shop (worktrees: shop-stripe, shop-paypal, shop-p
 Agent A (shop-stripe) has already renamed PaymentService.charge. Now start two agents:
   cd $TARGET/shop-paypal       && claude --plugin-dir <path-to-lanekeeper>
     "Create src/payments/paypal/client.ts with a function enablePayPal(service: PaymentService) that calls
-     service.charge(). Don't change any other file."
+     service.charge(). Don't change any other file. Then commit it."
     (optional, for the lockfile clash: "also add node_modules/@paypal/sdk 1.4.0 to package-lock.json,
      right after the empty root entry")
   cd $TARGET/shop-product-page && claude --plugin-dir <path-to-lanekeeper>
