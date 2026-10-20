@@ -109,6 +109,18 @@ node --test        # runs the tests; no dependencies to install
 
 No dependencies beyond Node.js and git.
 
+## Data and privacy
+
+- **What the hooks record**, for each event: the worktree path, branch, session id, the first 400 characters of each
+  prompt you type (shown as that agent's task; prompts starting with `/` are skipped), and the path of each file an
+  agent edits. File contents are never stored.
+- **Where it lives**: `.git/lanekeeper/events.jsonl` in the repository's own git directory. It is trimmed automatically
+  once it passes 2 MB, and deleting the `lanekeeper` folder there removes everything.
+- **Nothing leaves your machine**: no network requests, no telemetry. The map is served on `127.0.0.1` only.
+- **Commands it runs**: read-only `git` commands (`diff`, `status`, `worktree list`, `merge-base`, `rev-parse`) and
+  `git merge-tree --write-tree`, which writes unreferenced objects into the git object store (`git gc` removes them).
+  It also starts its own local server and, on request, opens your browser.
+
 ## Limits
 
 - Pattern-based detection can miss renamed concepts and can flag compatible work. Treat findings as leads.

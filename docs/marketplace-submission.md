@@ -1,88 +1,72 @@
-# Marketplace submission: Lanekeeper
+# Directory submission: Lanekeeper
 
-Submit through Anthropic's plugin directory form: https://clau.de/plugin-directory-submission
-(The form's exact fields aren't public, so the sections below cover what such a form usually asks. Paste what fits.)
+Anthropic's directory takes plugins through the developer portal: https://claude.ai/directory/manage
+(docs: https://claude.com/docs/directory/publish and https://claude.com/docs/plugins/submit). The old
+clau.de form redirects there.
 
-## Basics
+## Before you start
 
-| Field | Value |
+- A paid claude.ai plan (Pro, Max, Team or Enterprise). Free accounts can't submit.
+- Your GitHub account connected to claude.ai, with push access to the repo (you own it).
+- The repo must be public before the listing goes live. It already is.
+- The first organization to submit a repo owns the listing, so submit from the account that should keep it.
+
+## Pre-submission checklist (checked against the official one)
+
+| Check | Status |
 | --- | --- |
-| Plugin name | `lanekeeper` (the slug can't be changed after publishing) |
-| Display name | Lanekeeper |
-| Repository | https://github.com/osamaabid03/lanekeeper |
-| Version | 0.1.0 ([release v0.1.0](https://github.com/osamaabid03/lanekeeper/releases/tag/v0.1.0)) |
-| License | MIT |
-| Author | Osama Abid (osamaabid03) |
-| Category | Development / Productivity |
-| Install | `/plugin marketplace add osamaabid03/lanekeeper` then `/plugin install lanekeeper@lanekeeper` |
-| Requirements | Node.js 18+, git 2.38+ (older git works but skips the merge-conflict check) |
+| `.claude-plugin/plugin.json` at the repo root, with `description`, `author`, `version` | yes |
+| `claude plugin validate .` | passes |
+| README over 40 words, outside code blocks | yes (about 690) |
+| License | `LICENSE` (MIT) and `license` in `plugin.json` |
+| Name: lowercase, hyphens, 64 chars or fewer, not a reserved word | `lanekeeper` |
+| Files: all text, each under 256 KiB, at most 512 files | 19 files, all small text |
+| Hook commands use full `${CLAUDE_PLUGIN_ROOT}` paths, no launchers or package installs | yes (`node` + script path) |
+| No lockfile, `package.json`, or package-manager config in the plugin | none |
+| Readable, unminified source | yes |
+| README describes everything the plugin records, runs and sends | yes, "Data and privacy" section |
 
-## One-line description
+Can't be checked from here: whether the name `lanekeeper` is taken, and whether "Lanekeeper" is read as confusable with
+another listing. The portal's **Validate** step reports both.
 
-Keeps parallel Claude Code agents in their lanes: a live map of what each agent is touching, with clashes caught before
-you merge.
+## Portal steps and what to enter
 
-## Description
+1. **Submit new** > **Plugin bundle**.
+2. **Source**
+   - Repository: `osamaabid03/lanekeeper`
+   - Plugin path: leave empty (the plugin is at the repo root)
+   - Branch or tag: leave empty to follow `main`, so every merge to `main` becomes a new version
+   - Select **Validate**, fix anything marked Blocking, push, then **Re-validate**.
+3. **Listing details**: read from `plugin.json` and the README, nothing to type. To change them, edit those files.
+4. **Data handling** (answers):
+   - Reads or stores personal data? It stores prompt text you type (first 400 characters) and edited file paths,
+     locally, in `.git/lanekeeper/events.jsonl`. Prompts could contain personal data, so answer yes and say it stays on
+     the user's machine.
+   - Sends data to services other than declared connectors? No. There are no network requests; the map is served on
+     `127.0.0.1` only.
+   - How long is data kept? Locally until the user deletes `.git/lanekeeper`; the log is trimmed automatically past 2 MB.
+   - Intended for people under 18? No. It's a developer tool.
+5. **Compliance**: confirm a contact email you read, and tick all four acknowledgements.
+6. **Review and submit**: keep **GitHub push webhook** (needs admin on the repo, which you have), then
+   **Submit for review**.
 
-When you run several Claude Code agents at once, each in its own git worktree, Git stops them overwriting each other's
-files. It doesn't stop them making changes that can't both be true: one agent renames a method while another writes
-code that calls it, and the branches merge cleanly and break later.
+## After you submit
 
-Lanekeeper watches every worktree of a repository and shows a live map in your browser:
+- A person reviews a new listing, and every later version gets an automated scan. Watch the status under
+  **Submissions** in the portal. It is not instant, and Anthropic publishes the first version.
+- Findings marked **Policy hold** go to a reviewer and aren't rejections.
+- Release updates by merging to `main`, and raise `version` in `plugin.json` each time.
+- The demo video: https://github.com/osamaabid03/lanekeeper/releases/download/v0.1.0/lanekeeper-demo.mp4 (the portal
+  form doesn't have a video field that I could confirm; use it wherever the listing allows links).
 
-- one lane per agent, with its task and every file it has changed
-- clashes highlighted, each explained in plain English with a suggested fix
-- whether Git itself will warn you at merge time, or stay silent (asked via `git merge-tree`)
-- a suggested merge order: clash-free work first, risky changes last
-- a **Copy note for agents** button to paste the clash into each agent's session
+## Facts for questions from reviewers
 
-Zero setup: install the plugin, run `/lanekeeper:clashes`. Everything runs on your machine; nothing is hosted.
-
-## What it detects
-
-| Severity | Clash |
-| --- | --- |
-| High | One agent removes or renames a definition another agent is building on |
-| Medium | Both agents change the same dependency lockfile |
-| Medium | Both agents change the same function or class |
-| Low | Both agents change the same file in different places |
-
-Definition detection is pattern-based (best for JS/TS, Python, Go and Rust), so findings are worded as leads, not
-verdicts.
-
-## What the plugin does on your machine (security and privacy)
-
-- **Hooks:** five async command hooks (`SessionStart`, `UserPromptSubmit`, `PostToolUse` on Write/Edit/MultiEdit/
-  NotebookEdit, `Stop`, `SessionEnd`) run `scripts/record.mjs` in the background. They never block a session and fail
-  silently.
-- **What is recorded:** the worktree path, branch, session id, the **first 400 characters of each prompt** (shown as the
-  agent's task), and the path of each edited file. File contents are not stored.
-- **Where it is stored:** `.git/lanekeeper/events.jsonl` inside the repository's own git directory. It never leaves the
-  machine and is trimmed automatically.
-- **Network:** no outbound requests, no telemetry, no analytics. The map is served from `127.0.0.1` only (requests with
-  any other `Host` header get a 403) and exits after two hours without visitors.
-- **Commands it runs:** read-only `git` commands (`diff`, `status`, `worktree list`, `merge-base`, `rev-parse`) and
-  `git merge-tree --write-tree`, which writes unreferenced objects into the git object store (removed by `git gc`). It
-  also starts its own local server and, on request, opens your browser.
-- **What it never does:** edit your code, commit, merge, or change branches. It only detects and suggests.
-- **Dependencies:** none beyond Node.js and git.
-
-## Testing
-
-- `claude plugin validate .` passes.
-- Installs cleanly from GitHub: `/plugin marketplace add osamaabid03/lanekeeper` then
-  `/plugin install lanekeeper@lanekeeper` (checked in an isolated config; shows 0.1.0, enabled).
-- `node --test` runs 6 tests (definition detection, diff parsing, lockfile notes, and an end-to-end run on a generated
-  demo repository, including a check against real `git merge-tree` results).
-- Dogfooded in real Claude Code sessions in parallel worktrees: hooks fire on every event and add about 2–22 ms before
-  going to the background.
-- **Known gaps:** Windows is untested. Detection can miss renamed concepts and can flag compatible work.
-
-## Demo
-
-- Video (70 s): https://github.com/osamaabid03/lanekeeper/releases/download/v0.1.0/lanekeeper-demo.mp4
-- Reproduce it yourself: `./examples/make-demo-repo.sh ~/lanekeeper-demo`, then follow the README's "Try the demo".
-
-## Support
-
-Issues: https://github.com/osamaabid03/lanekeeper/issues
+- Hooks: `SessionStart`, `UserPromptSubmit`, `PostToolUse` (Write, Edit, MultiEdit, NotebookEdit), `Stop`,
+  `SessionEnd`. All async, all fail silently.
+- Writes only inside `.git/lanekeeper/` (event log, server pid file) plus unreferenced git objects from
+  `git merge-tree --write-tree`.
+- Runs read-only `git` commands, starts a local server on `127.0.0.1` (Host header checked, exits after two hours idle),
+  and opens the browser on request.
+- Never edits code, commits, merges or changes branches.
+- Tested: 6 `node:test` tests, a headless run with two real Claude Code sessions, and a clean install from GitHub in an
+  isolated config. Not tested on Windows.
