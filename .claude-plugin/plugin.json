@@ -4,8 +4,16 @@
   "version": "0.1.0",
   "description": "Keeps parallel Claude Code agents in their lanes: a live map of what each agent is touching, with clashes caught before you merge.",
   "author": {
-    "name": "Usama Abid"
+    "name": "Osama Abid"
   },
+  "homepage": "https://github.com/osamaabid03/lanekeeper",
+  "repository": "https://github.com/osamaabid03/lanekeeper",
   "license": "MIT",
-  "keywords": ["parallel-agents", "worktrees", "merge-conflicts", "semantic-conflicts", "visualization"]
+  "keywords": [
+    "parallel-agents",
+    "worktrees",
+    "merge-conflicts",
+    "semantic-conflicts",
+    "visualization"
+  ]
 }
