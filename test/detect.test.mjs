@@ -1,0 +1,88 @@
+// Run with: node --test
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { definitionsIn, parseDiff, lockfileNote, detect } from '../lib/detect.mjs';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+
+test('definitionsIn finds definitions across languages', () => {
+  assert.deepEqual(definitionsIn('export class PaymentService {'), ['PaymentService']);
+  assert.deepEqual(definitionsIn('const f = async (a) => 1;'), ['f']);
+  assert.deepEqual(definitionsIn('def foo(x):'), ['foo']);
+  assert.deepEqual(definitionsIn('func (s *S) Bar() {'), ['Bar']);
+  assert.deepEqual(definitionsIn('pub async fn baz() {'), ['baz']);
+  assert.deepEqual(definitionsIn('  charge(amount: number) {'), ['charge']);
+  assert.deepEqual(definitionsIn('type Foo = {'), ['Foo']);
+});
+
+test('definitionsIn ignores control flow and plain code', () => {
+  assert.deepEqual(definitionsIn('if (x) {'), []);
+  assert.deepEqual(definitionsIn('return foo(bar);'), []);
+});
+
+test('parseDiff reports status, symbols and changed lines', () => {
+  const files = parseDiff(`diff --git a/a.ts b/a.ts
+--- a/a.ts
++++ b/a.ts
+@@ -1,2 +1,2 @@ function ctx() {
+-export class Old {
++export class New {
+diff --git a/b.ts b/b.ts
+--- /dev/null
++++ b/b.ts
+@@ -0,0 +1 @@
++x
+diff --git a/c.ts b/c.ts
+--- a/c.ts
++++ /dev/null
+@@ -1 +0,0 @@
+-gone`);
+  assert.deepEqual(files.map((f) => [f.path, f.status]), [['a.ts', 'modified'], ['b.ts', 'added'], ['c.ts', 'deleted']]);
+  assert.deepEqual([...files[0].symbols].sort(), ['New', 'Old', 'ctx']);
+  assert.deepEqual(files[0].added, ['export class New {']);
+  assert.deepEqual(files[0].removed, ['export class Old {']);
+  assert.deepEqual(files[2].removed, ['gone']);
+});
+
+test('lockfileNote names added packages, falls back to the file', () => {
+  const line = (n) => `    "node_modules/${n}": { "version": "1.0.0" },`;
+  assert.equal(lockfileNote({ path: 'package-lock.json', added: [line('stripe')], removed: [] }), 'Added stripe');
+  assert.equal(lockfileNote({ path: 'package-lock.json', added: [line('@paypal/sdk')], removed: [] }), 'Added @paypal/sdk');
+  assert.equal(lockfileNote({ path: 'package-lock.json', added: [line('a')], removed: [line('a')] }), 'Changed package-lock.json');
+  assert.equal(
+    lockfileNote({ path: 'package-lock.json', added: ['a', 'b', 'c', 'd', 'e'].map(line), removed: [] }),
+    'Added a, b, c and 2 more',
+  );
+});
+
+test('detect() finds the demo repo clashes and a safe merge order', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lanekeeper-test-'));
+  try {
+    execFileSync('bash', [path.join(here, '..', 'examples', 'make-demo-repo.sh'), path.join(dir, 'demo')], { stdio: 'ignore' });
+    const s = detect(path.join(dir, 'demo', 'shop'));
+
+    assert.equal(s.base, 'main');
+    assert.equal(s.agents.length, 3);
+
+    const high = s.clashes.filter((c) => c.severity === 'high');
+    assert.equal(high.length, 1);
+    assert.equal(high[0].kind, 'removed-used');
+    assert.equal(high[0].symbol, 'PaymentService');
+
+    const lock = s.clashes.filter((c) => c.kind === 'lockfile');
+    assert.equal(lock.length, 1);
+    assert.equal(lock[0].severity, 'medium');
+
+    assert.equal(s.clashes.length, 2);
+    // Clash-free product page goes first; the agent that removed PaymentService goes last.
+    assert.equal(s.mergeOrder[0].branch, 'agent/product-page');
+    assert.equal(s.mergeOrder.at(-1).branch, 'agent/stripe');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
