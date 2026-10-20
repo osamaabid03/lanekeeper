@@ -1,0 +1,11 @@
+{
+  "name": "clash-map",
+  "displayName": "Clash Map",
+  "version": "0.1.0",
+  "description": "See which parallel Claude Code agents are touching what, and catch clashes between their worktrees before you merge.",
+  "author": {
+    "name": "Usama Abid"
+  },
+  "license": "MIT",
+  "keywords": ["parallel-agents", "worktrees", "merge-conflicts", "semantic-conflicts", "visualization"]
+}

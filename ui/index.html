@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clash Map</title>
+<style>
+  :root {
+    --bg: #F7F7F5; --panel: #FFFFFF; --line: #E2E2DE; --line-strong: #C9C9C4;
+    --ink: #1A1A1A; --ink-2: #3A3A36; --muted: #5F5F5A; --chip: #FAFAF8;
+    --clash: #E8590C; --clash-bg: #FFF4EC; --clash-ink: #A33A08; --clash-soft: #FFE2CC;
+    --blue: #2F6FEB; --blue-bg: #EEF3FF; --blue-ink: #1F4FB8; --fix-bg: #F3F6FF; --fix-line: #D6E1FB;
+    --btn: #1A1A1A; --btn-ink: #FFFFFF; --idle-bg: #EDEDE9;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141413; --panel: #1E1E1C; --line: #33332F; --line-strong: #4A4A45;
+      --ink: #F2F2EE; --ink-2: #D6D6D0; --muted: #A3A39C; --chip: #262624;
+      --clash: #F07A3A; --clash-bg: #3A2416; --clash-ink: #FFB48A; --clash-soft: #4A2C18;
+      --blue: #6E9BFF; --blue-bg: #1D2740; --blue-ink: #A9C2FF; --fix-bg: #1B2236; --fix-line: #2C3A5E;
+      --btn: #F2F2EE; --btn-ink: #141413; --idle-bg: #2C2C29;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  button { font: inherit; cursor: pointer; }
+  code, .mono { font-family: var(--mono); }
+  header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; padding: 14px 24px; background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 2; }
+  .brand { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .brand b { font-size: 17px; letter-spacing: -0.01em; }
+  .muted { color: var(--muted); }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+  .pill .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .pill.blue { background: var(--blue-bg); color: var(--blue-ink); } .pill.blue .dot { background: var(--blue); }
+  .pill.orange { background: var(--clash-bg); color: var(--clash-ink); } .pill.orange .dot { background: var(--clash); }
+  .pill.idle { background: var(--idle-bg); color: var(--ink-2); }
+  .btn { height: 40px; padding: 0 16px; border: 0; border-radius: 8px; background: var(--btn); color: var(--btn-ink); font-weight: 600; }
+  .btn.secondary { background: transparent; color: var(--ink); border: 1px solid var(--line-strong); }
+  .btn:focus-visible, .clash-item:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  main { max-width: 1400px; margin: 0 auto; padding: 24px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+  .lanes { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+  #lanes { display: flex; flex-direction: column; gap: 12px; }
+  aside { flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+  .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .between { justify-content: space-between; }
+  h1 { margin: 0; font-size: 18px; font-weight: 600; }
+  h2 { margin: 0; font-size: 15px; font-weight: 600; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--ink); color: var(--bg); display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex: none; }
+  .avatar.sm { width: 22px; height: 22px; font-size: 11px; }
+  .who { display: flex; flex-direction: column; min-width: 0; flex: 1 1 220px; }
+  .task { color: var(--ink-2); font-size: 13.5px; overflow-wrap: anywhere; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--chip); max-width: 100%; }
+  .chip .path { font-family: var(--mono); font-size: 12.5px; overflow-wrap: anywhere; }
+  .chip .kind { font-size: 12px; color: var(--muted); }
+  .chip.clash { border: 2px solid var(--clash); background: var(--clash-bg); padding: 5px 9px; }
+  .chip.clash .kind { color: var(--clash-ink); }
+  .chip.focus { box-shadow: 0 0 0 3px var(--clash-soft); }
+  .chip.dim { opacity: 0.45; }
+  .tag { padding: 1px 6px; border-radius: 4px; background: var(--clash-ink); color: var(--panel); font-size: 11px; font-weight: 600; }
+  .live { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); }
+  .legend { display: flex; gap: 16px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--line-strong); background: var(--chip); }
+  .sw.c { border: 2px solid var(--clash); background: var(--clash-bg); }
+  .clash-item { display: flex; align-items: flex-start; gap: 10px; width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); text-align: left; color: inherit; }
+  .clash-item.active { border: 2px solid var(--clash); background: var(--clash-bg); padding: 9px 11px; }
+  .sev-dot { margin-top: 6px; width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--clash); }
+  .sev-dot.low { background: var(--line-strong); }
+  .sev { padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .sev.high { background: var(--clash-ink); color: var(--panel); }
+  .sev.medium { background: var(--clash-soft); color: var(--clash-ink); }
+  .sev.low { background: var(--idle-bg); color: var(--ink-2); }
+  .fix { padding: 12px 14px; border-radius: 8px; background: var(--fix-bg); border: 1px solid var(--fix-line); }
+  .fix .label { font-size: 12px; font-weight: 600; color: var(--blue-ink); margin-bottom: 2px; }
+  .did { display: flex; gap: 10px; align-items: flex-start; overflow-wrap: anywhere; }
+  ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+  .empty code { background: var(--chip); padding: 2px 6px; border-radius: 4px; color: var(--ink); }
+  .linkish { background: none; border: 0; padding: 0; color: var(--blue-ink); text-decoration: underline; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 10px 16px; border-radius: 8px; font-weight: 600; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .error { border-color: var(--clash); color: var(--clash-ink); }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true"><rect x="2" y="2" width="14" height="14" rx="3" stroke="currentColor" stroke-width="2"/><rect x="10" y="10" width="14" height="14" rx="3" stroke="var(--clash)" stroke-width="2"/></svg>
+    <b>Clash Map</b>
+    <span class="muted" aria-hidden="true">/</span>
+    <span class="mono" id="repo">…</span>
+    <span class="muted" style="font-size:12.5px">base: <span class="mono" id="base">…</span></span>
+  </div>
+  <div class="row">
+    <span class="pill blue" id="agentsPill"><span class="dot"></span><span>…</span></span>
+    <span class="pill orange" id="clashPill"><span class="dot"></span><span>…</span></span>
+    <span class="muted" style="font-size:12px" id="updated" aria-live="polite"></span>
+    <button class="btn" id="refresh" type="button">Check again</button>
+  </div>
+</header>
+
+<main>
+  <section class="lanes" aria-label="Agents">
+    <div class="row between">
+      <h1>What each agent is touching</h1>
+      <div class="legend">
+        <span><span class="sw"></span>Touched</span>
+        <span><span class="sw c"></span>In a clash</span>
+        <span><span class="live"></span>Edited in the last 2 minutes</span>
+      </div>
+    </div>
+    <div id="lanes"></div>
+  </section>
+  <aside aria-label="Clashes">
+    <div class="card" id="clashList"></div>
+    <div class="card" id="detail" hidden></div>
+    <div class="card" id="order" hidden></div>
+  </aside>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const SEV = { high: 'High', medium: 'Medium', low: 'Low' };
+  const STATUS_LABEL = { working: 'Working', idle: 'Idle', 'no activity recorded': 'No activity recorded' };
+
+  let state = null;
+  let selected = null;
+  let fetchedAt = 0;
+
+  const store = {
+    key: () => 'clashmap:fine:' + (state?.id || state?.root || ''),
+    get() { try { return new Set(JSON.parse(localStorage.getItem(this.key()) || '[]')); } catch { return new Set(); } },
+    set(s) { try { localStorage.setItem(this.key(), JSON.stringify([...s])); } catch {} },
+  };
+  const signature = (c) => [c.kind, c.symbol || '', ...Object.values(c.files).sort()].join('|');
+
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  function visibleClashes() {
+    const fine = store.get();
+    return (state?.clashes || []).filter((c) => !fine.has(signature(c)));
+  }
+
+  function agentById(id) { return state.agents.find((a) => a.id === id); }
+
+  function renderHeader() {
+    $('repo').textContent = state.repo;
+    $('base').textContent = state.base;
+    const working = state.counts.working;
+    $('agentsPill').lastElementChild.textContent = `${state.counts.agents} agent${state.counts.agents === 1 ? '' : 's'}${working ? `, ${working} working` : ''}`;
+    const n = visibleClashes().length;
+    $('clashPill').lastElementChild.textContent = n ? `${n} clash${n === 1 ? '' : 'es'}` : 'No clashes';
+    $('clashPill').className = n ? 'pill orange' : 'pill idle';
+    document.title = n ? `(${n}) Clash Map` : 'Clash Map';
+  }
+
+  function renderLanes() {
+    const box = $('lanes');
+    if (!state.agents.length) {
+      box.innerHTML = `<div class="card empty"><p><b>No agent worktrees with changes yet.</b></p>
+        <p>Start agents in their own worktrees, for example <code>claude --worktree stripe</code> and <code>claude --worktree paypal</code>. They will appear here as they work.</p></div>`;
+      return;
+    }
+    const visible = new Set(visibleClashes().map((c) => c.id));
+    box.innerHTML = state.agents.map((a) => {
+      const chips = a.files.map((f) => {
+        const tags = f.clashes.filter((c) => visible.has(c.id));
+        const inSelected = selected && tags.some((c) => c.id === selected);
+        const cls = ['chip', tags.length ? 'clash' : '', inSelected ? 'focus' : '', selected && !inSelected && tags.length ? 'dim' : ''].join(' ');
+        const kind = f.removed.length ? `removed ${f.removed.slice(0, 2).join(', ')}` : f.status;
+        return `<span class="${cls}" title="${esc(f.symbols.length ? 'Touches: ' + f.symbols.join(', ') : f.path)}">
+          ${f.live ? '<span class="live" aria-label="edited in the last 2 minutes"></span>' : ''}
+          <span class="path">${esc(f.path)}</span><span class="kind">${esc(kind)}</span>
+          ${tags.map((c) => `<span class="tag">${esc(c.tag)}</span>`).join('')}
+        </span>`;
+      }).join('');
+      const statusCls = a.status === 'working' ? 'pill blue' : 'pill idle';
+      const clashFree = !a.files.some((f) => f.clashes.some((c) => visible.has(c.id)));
+      return `<article class="card">
+        <div class="row">
+          <span class="avatar" aria-hidden="true">${esc(a.letter)}</span>
+          <div class="who">
+            <div class="row" style="gap:10px"><b style="font-size:15px">${esc(a.name)}</b><span class="mono muted" style="font-size:12.5px">${esc(a.branch)}</span></div>
+            <span class="task">${a.task ? 'Task: ' + esc(a.task) : '<span class="muted">Task not recorded yet</span>'}</span>
+          </div>
+          <span class="${statusCls}">${a.status === 'working' ? '<span class="dot"></span>' : ''}${esc(STATUS_LABEL[a.status] || a.status)}</span>
+        </div>
+        <div class="chips">${chips || '<span class="muted">No changes yet</span>'}</div>
+        ${clashFree && a.files.length ? '<span style="font-size:12.5px;color:var(--ink-2)">No clashes with other agents. Safe to merge.</span>' : ''}
+      </article>`;
+    }).join('');
+  }
+
+  function renderClashList() {
+    const list = visibleClashes();
+    const fineCount = (state.clashes.length - list.length);
+    if (selected && !list.some((c) => c.id === selected)) selected = null;
+    if (!selected && list.length) selected = list[0].id;
+    $('clashList').innerHTML = `<h2>Clashes</h2>` + (list.length
+      ? list.map((c) => {
+          const names = c.agents.map((id) => agentById(id)?.name).join(' and ');
+          return `<button type="button" class="clash-item ${c.id === selected ? 'active' : ''}" data-id="${esc(c.id)}" aria-pressed="${c.id === selected}">
+            <span class="sev-dot ${esc(c.severity)}"></span>
+            <span style="display:flex;flex-direction:column"><b>${esc(c.title)}</b><span class="muted" style="font-size:12.5px">${esc(c.tag)} · ${SEV[c.severity]} · ${esc(names)}</span></span>
+          </button>`;
+        }).join('')
+      : `<p class="muted" style="margin:0">${state.agents.length > 1 ? 'No clashes between agents right now.' : 'Clashes appear once two or more agents are working.'}</p>`)
+      + (fineCount ? `<p class="muted" style="margin:0;font-size:12.5px">${fineCount} marked as fine. <button class="linkish" type="button" id="unfine">Show again</button></p>` : '');
+  }
+
+  function renderDetail() {
+    const c = visibleClashes().find((x) => x.id === selected);
+    const box = $('detail');
+    if (!c) { box.hidden = true; return; }
+    box.hidden = false;
+    const did = c.agents.map((id) => {
+      const a = agentById(id);
+      return `<div class="did"><span class="avatar sm" aria-hidden="true">${esc(a?.letter)}</span><span><b>${esc(a?.name)}</b> <span class="mono muted" style="font-size:12px">${esc(a?.branch)}</span><br>${esc(c.did[id])}</span></div>`;
+    }).join('');
+    box.innerHTML = `
+      <div class="row" style="gap:8px"><span class="sev ${esc(c.severity)}">${SEV[c.severity]}</span><span class="muted" style="font-size:12.5px">${esc(c.tag)}</span></div>
+      <h2 style="font-size:17px;line-height:1.3">${esc(c.title)}</h2>
+      <p style="margin:0;color:var(--ink-2)">${esc(c.explain)}</p>
+      <div style="display:flex;flex-direction:column;gap:10px">${did}</div>
+      <div class="fix"><div class="label">Suggested fix</div><div>${esc(c.fix)}</div></div>
+      <div class="row" style="gap:8px">
+        <button class="btn" type="button" id="copyNote">Copy note for agents</button>
+        <button class="btn secondary" type="button" id="markFine">Mark as fine</button>
+      </div>`;
+  }
+
+  function renderOrder() {
+    const box = $('order');
+    if (!state.mergeOrder || state.mergeOrder.length < 2) { box.hidden = true; return; }
+    box.hidden = false;
+    box.innerHTML = `<h2>Suggested merge order</h2><ol>${state.mergeOrder.map((m) =>
+      `<li><b>${esc(m.name)}</b> <span class="mono muted" style="font-size:12px">${esc(m.branch)}</span><br><span class="muted">${esc(m.note)}</span></li>`).join('')}</ol>`;
+  }
+
+  function render() {
+    if (!state) return;
+    if (state.error) {
+      $('lanes').innerHTML = `<div class="card error">Clash Map could not read this repository: ${esc(state.error)}</div>`;
+      return;
+    }
+    renderHeader();
+    renderClashList();
+    renderLanes();
+    renderDetail();
+    renderOrder();
+  }
+
+  function noteFor(c) {
+    const lines = [
+      `Clash Map found a clash with another agent working in parallel on this repository (${c.tag}, ${SEV[c.severity]}).`,
+      '',
+      c.explain,
+      '',
+      'What each agent did:',
+      ...c.agents.map((id) => { const a = agentById(id); return `- ${a.name} (${a.branch}): ${c.did[id]}`; }),
+      '',
+      `Suggested fix: ${c.fix}`,
+      '',
+      'Before changing code, confirm with me which direction to take.',
+    ];
+    return lines.join('\n');
+  }
+
+  async function copy(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch {}
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch {}
+    ta.remove();
+    return ok;
+  }
+
+  document.addEventListener('click', async (e) => {
+    const item = e.target.closest('.clash-item');
+    if (item) { selected = item.dataset.id; render(); return; }
+    if (e.target.id === 'copyNote') {
+      const c = visibleClashes().find((x) => x.id === selected);
+      if (c) toast((await copy(noteFor(c))) ? 'Note copied. Paste it into each agent’s session.' : 'Could not copy the note');
+    }
+    if (e.target.id === 'markFine') {
+      const c = visibleClashes().find((x) => x.id === selected);
+      if (c) { const s = store.get(); s.add(signature(c)); store.set(s); selected = null; render(); toast('Marked as fine'); }
+    }
+    if (e.target.id === 'unfine') { store.set(new Set()); render(); }
+    if (e.target.id === 'refresh') { load(true); }
+  });
+
+  async function load(manual) {
+    try {
+      const res = await fetch('/api/state', { cache: 'no-store' });
+      state = await res.json();
+      fetchedAt = Date.now();
+      render();
+      if (manual) toast('Checked just now');
+    } catch {
+      $('updated').textContent = 'Server not reachable. Run /clashes again.';
+    }
+  }
+
+  setInterval(() => {
+    if (fetchedAt) {
+      const s = Math.round((Date.now() - fetchedAt) / 1000);
+      $('updated').textContent = s < 3 ? 'Updated just now' : `Updated ${s}s ago`;
+    }
+  }, 1000);
+  setInterval(() => { if (!document.hidden) load(false); }, 3000);
+  load(false);
+})();
+</script>
+</body>
+</html>

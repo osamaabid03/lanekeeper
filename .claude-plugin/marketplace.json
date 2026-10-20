@@ -1,0 +1,14 @@
+{
+  "name": "clash-map",
+  "description": "Clash Map: a live map of what parallel Claude Code agents are touching, with clash detection before merge.",
+  "owner": {
+    "name": "Usama Abid"
+  },
+  "plugins": [
+    {
+      "name": "clash-map",
+      "source": "./",
+      "description": "See which parallel Claude Code agents are touching what, and catch clashes between their worktrees before you merge."
+    }
+  ]
+}
