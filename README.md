@@ -27,6 +27,10 @@ Everything runs on your machine. Nothing is hosted, and your code never leaves y
 Definition detection is pattern-based and works best for JavaScript, TypeScript, Python, Go and Rust. File, lockfile
 and same-file checks work for any language.
 
+Each clash also says whether Git itself will warn you: it asks `git merge-tree` about the two branches' committed work
+and tells you if the merge will stop with a text conflict, or go through silently. Uncommitted changes can't be checked
+this way, and the clash says so.
+
 ## Install
 
 From GitHub (once this repository is published):
@@ -42,7 +46,8 @@ From a local folder while developing:
 claude --plugin-dir ./lanekeeper
 ```
 
-Requires Node.js 18+ and git.
+Requires Node.js 18+ and git 2.38+. On older git everything still works, but Lanekeeper can't tell you whether Git
+itself will flag a clash at merge time.
 
 ## Use
 
