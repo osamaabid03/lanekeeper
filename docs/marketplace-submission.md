@@ -80,7 +80,7 @@ verdicts.
 
 ## Demo
 
-- Video (70 s): _attach `lanekeeper-demo.mp4` or paste a link once it is hosted._
+- Video (70 s): https://github.com/osamaabid03/lanekeeper/releases/download/v0.1.0/lanekeeper-demo.mp4
 - Reproduce it yourself: `./examples/make-demo-repo.sh ~/lanekeeper-demo`, then follow the README's "Try the demo".
 
 ## Support
