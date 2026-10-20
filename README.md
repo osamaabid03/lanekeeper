@@ -3,6 +3,8 @@
 **Keeps your parallel Claude Code agents in their lanes.** A live map of what each agent is touching, with clashes
 caught before you merge.
 
+[Watch the 70-second demo](https://github.com/osamaabid03/lanekeeper/releases/download/v0.1.0/lanekeeper-demo.mp4).
+
 Running several agents at once, each in its own git worktree, stops them overwriting each other's files. It doesn't
 stop them making changes that can't both be true. Git compares text, not intent, so contradictory work merges cleanly
 and breaks later.
