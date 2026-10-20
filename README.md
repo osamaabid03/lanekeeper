@@ -33,10 +33,10 @@ this way, and the clash says so.
 
 ## Install
 
-From GitHub (once this repository is published):
+From GitHub:
 
 ```
-/plugin marketplace add <your-github-user>/lanekeeper
+/plugin marketplace add osamaabid03/lanekeeper
 /plugin install lanekeeper@lanekeeper
 ```
 
