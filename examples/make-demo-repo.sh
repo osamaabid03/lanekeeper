@@ -74,48 +74,16 @@ EOF
 sed -i.bak 's#"node_modules/react": { "version": "18.3.1" }#"node_modules/react": { "version": "18.3.1" },\n    "node_modules/stripe": { "version": "17.2.0" }#' package-lock.json && rm -f package-lock.json.bak
 git add -A && git commit -qm "Replace PaymentService with StripePaymentService"
 
-# Agent B: adds PayPal on top of the old PaymentService (uncommitted, still working).
-cd ../shop-paypal
-cat > src/payments/PaymentService.ts <<'EOF'
-export class PaymentService {
-  private providers: string[] = [];
+# Agents B (paypal) and C (product-page) start with clean worktrees, so the clash
+# lights up live while they work. Suggested prompts:
+cat <<MSG
+Demo repository ready: $TARGET/shop (worktrees: shop-stripe, shop-paypal, shop-product-page)
 
-  charge(amount: number) {
-    return { ok: true, amount };
-  }
-
-  addProvider(name: string) {
-    this.providers.push(name);
-  }
-}
-EOF
-mkdir -p src/payments/paypal
-cat > src/payments/paypal/client.ts <<'EOF'
-import { PaymentService } from '../PaymentService';
-
-export function enablePayPal(service: PaymentService) {
-  service.addProvider('paypal');
-}
-EOF
-sed -i.bak 's#"node_modules/react": { "version": "18.3.1" }#"node_modules/react": { "version": "18.3.1" },\n    "node_modules/@paypal/sdk": { "version": "1.4.0" }#' package-lock.json && rm -f package-lock.json.bak
-
-# Agent C: redesigns the product page, no overlap with anyone.
-cd ../shop-product-page
-cat > src/product/ProductPage.tsx <<'EOF'
-import './product.css';
-
-export function ProductPage({ product }) {
-  return (
-    <main className="product">
-      <h1>{product.name}</h1>
-      <p>{product.description}</p>
-    </main>
-  );
-}
-EOF
-cat > src/product/product.css <<'EOF'
-.product { max-width: 720px; margin: 0 auto; }
-EOF
-git add -A && git commit -qm "Redesign product page"
-
-echo "Demo repository ready: $TARGET/shop (worktrees: shop-stripe, shop-paypal, shop-product-page)"
+Agent A (shop-stripe) has already replaced PaymentService. Now start two agents:
+  cd $TARGET/shop-paypal       && claude --plugin-dir <path-to-lanekeeper>
+    "Add a refund(amount) method to PaymentService in src/payments/PaymentService.ts"
+    (optional, for the lockfile clash: "also add node_modules/@paypal/sdk 1.4.0 to package-lock.json")
+  cd $TARGET/shop-product-page && claude --plugin-dir <path-to-lanekeeper>
+    "Add a short description paragraph under the heading in src/product/ProductPage.tsx"
+Then run /lanekeeper:clashes in any of them.
+MSG

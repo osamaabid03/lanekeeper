@@ -60,13 +60,27 @@ test('lockfileNote names added packages, falls back to the file', () => {
   );
 });
 
-test('detect() finds the demo repo clashes and a safe merge order', () => {
+test('detect() on the demo repo: quiet at the start, clashes appear as agents work', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lanekeeper-test-'));
   try {
     execFileSync('bash', [path.join(here, '..', 'examples', 'make-demo-repo.sh'), path.join(dir, 'demo')], { stdio: 'ignore' });
-    const s = detect(path.join(dir, 'demo', 'shop'));
+    const shop = path.join(dir, 'demo', 'shop');
 
+    // Only the stripe agent has changed anything, so there is nothing to clash with yet.
+    let s = detect(shop);
     assert.equal(s.base, 'main');
+    assert.deepEqual(s.agents.map((a) => a.branch), ['agent/stripe']);
+    assert.equal(s.clashes.length, 0);
+
+    // The paypal agent extends PaymentService and adds a package; the product-page agent works elsewhere.
+    const paypal = path.join(dir, 'demo', 'shop-paypal');
+    const svc = path.join(paypal, 'src/payments/PaymentService.ts');
+    fs.writeFileSync(svc, fs.readFileSync(svc, 'utf8').replace('  charge(', '  refund(amount: number) {\n    return { ok: true, amount: -amount };\n  }\n\n  charge('));
+    const lock = path.join(paypal, 'package-lock.json');
+    fs.writeFileSync(lock, fs.readFileSync(lock, 'utf8').replace('"node_modules/react": { "version": "18.3.1" }', '"node_modules/react": { "version": "18.3.1" },\n    "node_modules/@paypal/sdk": { "version": "1.4.0" }'));
+    fs.appendFileSync(path.join(dir, 'demo', 'shop-product-page', 'src/product/ProductPage.tsx'), '// description\n');
+
+    s = detect(shop);
     assert.equal(s.agents.length, 3);
 
     const high = s.clashes.filter((c) => c.severity === 'high');
@@ -74,9 +88,9 @@ test('detect() finds the demo repo clashes and a safe merge order', () => {
     assert.equal(high[0].kind, 'removed-used');
     assert.equal(high[0].symbol, 'PaymentService');
 
-    const lock = s.clashes.filter((c) => c.kind === 'lockfile');
-    assert.equal(lock.length, 1);
-    assert.equal(lock[0].severity, 'medium');
+    const lockClashes = s.clashes.filter((c) => c.kind === 'lockfile');
+    assert.equal(lockClashes.length, 1);
+    assert.equal(lockClashes[0].severity, 'medium');
 
     assert.equal(s.clashes.length, 2);
     // Clash-free product page goes first; the agent that removed PaymentService goes last.
