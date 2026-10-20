@@ -91,6 +91,8 @@ test('detect() on the demo repo: quiet at the start, clashes appear as agents wo
     assert.equal(high[0].kind, 'removed-used');
     assert.equal(high[0].symbol, 'charge');
     assert.match(high[0].explain, /\(agent\/stripe\).*\(agent\/paypal\)/);
+    // Paypal's work isn't committed yet, so Git can't vouch for it either way.
+    assert.equal(high[0].git, 'uncommitted');
 
     const lockClashes = s.clashes.filter((c) => c.kind === 'lockfile');
     assert.equal(lockClashes.length, 1);
@@ -105,6 +107,35 @@ test('detect() on the demo repo: quiet at the start, clashes appear as agents wo
     execFileSync('git', ['-C', paypal, 'add', '-A']);
     execFileSync('git', ['-C', paypal, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'paypal']);
     execFileSync('git', ['-C', shop, 'merge-tree', '--write-tree', 'agent/stripe', 'agent/paypal'], { stdio: 'ignore' });
+
+    // Once committed, Lanekeeper says the same: Git won't warn about the High clash.
+    const committed = detect(shop).clashes.find((c) => c.severity === 'high');
+    assert.equal(committed.git, 'clean');
+    assert.match(committed.explain, /nothing will warn you/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('detect() reports when Git itself will flag the conflict', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lanekeeper-test-'));
+  const sh = (cwd, ...args) => execFileSync('git', ['-C', cwd, '-c', 'user.email=t@t', '-c', 'user.name=t', ...args], { stdio: 'ignore' });
+  try {
+    const main = path.join(dir, 'repo');
+    fs.mkdirSync(main);
+    sh(main, 'init', '-q', '-b', 'main');
+    fs.writeFileSync(path.join(main, 'app.js'), 'function pay() {\n  return 1;\n}\n');
+    sh(main, 'add', '-A');
+    sh(main, 'commit', '-qm', 'base');
+    for (const [name, body] of [['one', 'return 2;'], ['two', 'return 3;']]) {
+      const wt = path.join(dir, name);
+      sh(main, 'worktree', 'add', '-q', '-b', `agent/${name}`, wt);
+      fs.writeFileSync(path.join(wt, 'app.js'), `function pay() {\n  ${body}\n}\n`);
+      sh(wt, 'commit', '-qam', name);
+    }
+    const c = detect(main).clashes.find((x) => x.kind === 'same-function');
+    assert.equal(c.git, 'conflict');
+    assert.match(c.explain, /text conflict/);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
