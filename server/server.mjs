@@ -25,7 +25,7 @@ function state() {
   if (cache.body && now - cache.at < 1500) return cache.body;
   let body;
   try {
-    body = JSON.stringify(detect(info.top, { base: process.env.LANEKEEPER_BASE }));
+    body = JSON.stringify(detect(info.top));
   } catch (err) {
     body = JSON.stringify({ error: err.message });
   }
@@ -64,7 +64,7 @@ function cleanup() {
   } catch {}
 }
 
-const firstPort = Number(process.env.LANEKEEPER_PORT) || 4777;
+const firstPort = 4777;
 function listen(port) {
   server.once('error', (err) => {
     if (err.code === 'EADDRINUSE' && port < firstPort + 20) listen(port + 1);

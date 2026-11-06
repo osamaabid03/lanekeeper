@@ -118,8 +118,7 @@ node scripts/start.mjs --open   # start the map and open it
 node scripts/start.mjs --stop   # stop the map
 ```
 
-Options: `--base <branch>` (defaults to origin's default branch, then main, master, trunk, develop),
-`LANEKEEPER_PORT` (default 4777).
+Options: `--base <branch>` (defaults to origin's default branch, then main, master, trunk, develop). The page uses port 4777, or the next free one.
 
 ## Try the demo
 
